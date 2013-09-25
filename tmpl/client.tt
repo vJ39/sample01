@@ -1,0 +1,74 @@
+[% WRAPPER 'include/layout.tt' %]
+    <section class="row">
+        <form id="form">
+            <input type="text" name="message" id="message" />
+            <input type="file" name="image" id="image" />
+            <input type="submit" />
+        </form>
+        <pre id="log"></pre>
+    </section>
+    <script type="text/javascript">
+        function log(msg){
+            $('#log').text($('#log').text() + msg + "\n");
+        }
+        $(function () {
+            var ws = new WebSocket('ws://192.168.1.101:5000/echo');
+            ws.onopen = function () {
+                log('connected');
+            };
+            ws.onclose = function (ev) {
+                log('closed');
+            };
+            ws.onmessage = function (ev) {
+                $('#message').val('');
+                log(ev.data);
+            };
+            ws.onerror = function (ev) {
+                log('error');
+            };
+            $('#form').submit(function(){
+                ws.send($('#message').val());
+                return false;
+            });
+        });
+    </script>
+    <script type="text/javascript">
+        function view(img){
+            $('#log').html("<img width='100%' src='"+img+"' />\n");
+        }
+        $(function () {
+            var ws = new WebSocket('ws://192.168.1.101:5000/imgecho');
+            ws.onopen = function () {
+                console.log('open');
+            };
+            ws.onclose = function (ev) {
+                console.log('close');
+                window.reload();
+            };
+            ws.onmessage = function (ev) {
+                /*
+                var bytes = [];
+                var adjust = "";
+                for(var i = 0; i < ev.data.length; i++) {
+                    bytes[i] = ev.data.charCodeAt(i) & 0xff;
+                    adjust += String.fromCharCode(bytes[i]);
+                }
+                view(adjust);
+                */
+                view(ev.data);
+            };
+            ws.onerror = function (ev) {
+                console.log('error');
+            };
+            $('#image').change(function(){
+                var file = this.files[0];
+                fileReader = new FileReader();
+                fileReader.onload = function(event) {
+                    ws.send(event.target.result);
+                };
+                fileReader.readAsDataURL(file);
+                return false;
+            });
+        });
+    </script>
+[% END %]
