@@ -27,4 +27,14 @@ sub db {
     $c->{db};
 }
 
+sub dbh {
+    my $c = shift;
+    if (!exists $c->{db}) {
+        my $conf = $c->config->{DBI}
+            or die "Missing configuration about DBI";
+        $c->{db} = Amon2::DBI->connect(@$conf);
+    }
+    $c->{db};
+}
+
 1;

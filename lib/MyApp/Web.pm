@@ -17,6 +17,10 @@ __PACKAGE__->load_plugins(
     'Web::CSRFDefender' => {
         post_only => 1,
     },
+    'Web::Raw',
+    'Web::WebSocket' => {
+        max_payload_size => 10000000,
+    },
 );
 
 # setup view
@@ -41,6 +45,12 @@ __PACKAGE__->add_trigger(
         $res->header( 'Cache-Control' => 'private' );
     },
 );
+
+__PACKAGE__->add_trigger(HTML_FILTER => sub {
+    my ($c, $html) = @_;
+    $html =~ s/さいきろん/さいくろん/g;
+    return $html;
+});
 
 __PACKAGE__->add_trigger(
     BEFORE_DISPATCH => sub {
